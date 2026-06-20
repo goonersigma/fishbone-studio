@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fishbone Studio — 2D Sketches, Turned Into Painted Sculptures</title>
+<meta name="description" content="Send a photo or sketch. Get it scanned, 3D printed, and hand-painted into a one-of-a-kind sculpture.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg:        #0B0D0F;
+    --bg-elev:   #15181B;
+    --bg-card:   #1C2023;
+    --paper:     #F5F2EA;
+    --paper-dim: #C9C5B9;
+    --orange:    #FF5A1F;
+    --orange-dim:#B5471D;
+    --sage:      #7C8B7A;
+    --sage-dim:  #5C685A;
+    --muted:     #8A8F94;
+    --line:      #2A2E32;
+
+    --display: 'Fraunces', serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--bg);
+    color:var(--paper);
+    font-family:var(--body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  a{ color:inherit; text-decoration:none; }
+  img{ max-width:100%; display:block; }
+
+  ::selection{ background:var(--orange); color:var(--bg); }
+
+  :focus-visible{
+    outline: 2px solid var(--orange);
+    outline-offset: 3px;
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  /* ---------- texture ---------- */
+  .grain{
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index:200;
+    opacity:0.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay;
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:sticky; top:0; z-index:100;
+    background:rgba(11,13,15,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px;
+    max-width:1180px; margin:0 auto;
+  }
+  .logo{
+    font-family:var(--display);
+    font-weight:600;
+    font-style:italic;
+    font-size:1.3rem;
+    letter-spacing:0.01em;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .logo .dot{ color:var(--orange); font-style:normal; }
+  .nav-links{
+    display:flex; gap:36px;
+    font-size:0.92rem;
+    color:var(--paper-dim);
+  }
+  .nav-links a{ transition:color 0.2s; position:relative; }
+  .nav-links a:hover{ color:var(--paper); }
+  .nav-cta{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    border:1px solid var(--line);
+    padding:9px 16px;
+    border-radius:100px;
+    color:var(--paper);
+    transition:border-color 0.2s, background 0.2s;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{ border-color:var(--orange); background:rgba(255,90,31,0.08); }
+
+  @media (max-width:760px){
+    .nav-links{ display:none; }
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:96px 0 88px;
+    position:relative;
+  }
+  .hero .wrap{
+    display:grid;
+    grid-template-columns:1.05fr 1fr;
+    gap:64px;
+    align-items:center;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--orange);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:18px; height:1px;
+    background:var(--orange);
+  }
+  h1{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:clamp(2.5rem, 4.6vw, 4rem);
+    line-height:1.04;
+    letter-spacing:-0.01em;
+    margin-bottom:24px;
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:600;
+    color:var(--orange);
+  }
+  .hero p.sub{
+    font-size:1.08rem;
+    color:var(--paper-dim);
+    max-width:46ch;
+    margin-bottom:36px;
+  }
+  .hero-actions{
+    display:flex; gap:14px; flex-wrap:wrap;
+    align-items:center;
+  }
+  .btn{
+    font-family:var(--body);
+    font-weight:600;
+    font-size:0.95rem;
+    padding:15px 28px;
+    border-radius:100px;
+    display:inline-flex; align-items:center; gap:10px;
+    transition:transform 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .btn-primary{
+    background:var(--orange);
+    color:#1A0A02;
+  }
+  .btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 28px -8px rgba(255,90,31,0.55);
+  }
+  .btn-ghost{
+    color:var(--paper);
+    border:1px solid var(--line);
+  }
+  .btn-ghost:hover{ border-color:var(--paper-dim); }
+
+  .price-note{
+    font-family:var(--mono);
+    font-size:0.75rem;
+    color:var(--muted);
+    letter-spacing:0.04em;
+    margin-top:16px;
+  }
+  .price-note em{
+    color:var(--paper-dim);
+    font-style:normal;
+  }
+
+  /* before/after slider */
+  .slider-wrap{
+    position:relative;
+    aspect-ratio:960/642;
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background:var(--bg-elev);
+    box-shadow:0 40px 80px -30px rgba(0,0,0,0.7);
+    user-select:none;
+    cursor:ew-resize;
+  }
+  .slider-wrap img{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    pointer-events:none;
+  }
+  .slider-after{ z-index:1; }
+  .slider-before{
+    z-index:2;
+    clip-path: inset(0 50% 0 0);
+  }
+  .slider-handle{
+    position:absolute; top:0; bottom:0;
+    left:50%;
+    width:2px;
+    background:var(--paper);
+    z-index:3;
+    transform:translateX(-1px);
+    pointer-events:none;
+  }
+  .slider-grip{
+    position:absolute; top:50%; left:50%;
+    width:46px; height:46px;
+    background:var(--paper);
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--bg);
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  }
+  .slider-grip svg{ width:18px; height:18px; }
+  .slider-tag{
+    position:absolute; bottom:14px;
+    font-family:var(--mono);
+    font-size:0.68rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    background:rgba(11,13,15,0.7);
+    backdrop-filter:blur(4px);
+    padding:6px 11px;
+    border-radius:100px;
+    z-index:4;
+    pointer-events:none;
+  }
+  .slider-tag.left{ left:14px; }
+  .slider-tag.right{ right:14px; }
+  .slider-hint{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:0.72rem;
+    color:var(--muted);
+    margin-top:14px;
+    letter-spacing:0.03em;
+  }
+
+  @media (max-width:900px){
+    .hero .wrap{ grid-template-columns:1fr; gap:48px; }
+    .hero{ padding:56px 0 64px; }
+  }
+
+  /* ---------- marquee strip ---------- */
+  .strip{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    overflow:hidden;
+    background:var(--bg-elev);
+  }
+  .strip-track{
+    display:flex;
+    white-space:nowrap;
+    animation:scroll 26s linear infinite;
+    width:max-content;
+  }
+  .strip-track span{
+    font-family:var(--mono);
+    font-size:0.85rem;
+    letter-spacing:0.04em;
+    color:var(--muted);
+    padding:16px 28px;
+    display:inline-flex;
+    align-items:center;
+    gap:28px;
+  }
+  .strip-track span em{
+    color:var(--orange);
+    font-style:normal;
+  }
+  @keyframes scroll{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .strip-track{ animation:none; }
+  }
+
+  /* ---------- section heads ---------- */
+  section{ padding:120px 0; }
+  .section-head{
+    margin-bottom:56px;
+    max-width:640px;
+  }
+  .section-head .eyebrow{ margin-bottom:18px; }
+  h2{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:clamp(2rem, 3.4vw, 2.8rem);
+    line-height:1.1;
+    letter-spacing:-0.01em;
+  }
+  h2 em{ font-style:italic; font-weight:600; color:var(--orange); }
+  .section-head p{
+    color:var(--paper-dim);
+    margin-top:16px;
+    font-size:1.02rem;
+    max-width:50ch;
+  }
+
+  /* ---------- process ---------- */
+  .process{ background:var(--bg-elev); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .process-list{
+    display:flex; flex-direction:column;
+  }
+  .p-step{
+    display:grid;
+    grid-template-columns:90px 1fr;
+    gap:32px;
+    padding:36px 0;
+    border-top:1px solid var(--line);
+    align-items:start;
+  }
+  .p-step:last-child{ border-bottom:1px solid var(--line); }
+  .p-num{
+    font-family:var(--mono);
+    font-size:0.85rem;
+    color:var(--orange);
+    padding-top:6px;
+  }
+  .p-body h3{
+    font-family:var(--display);
+    font-weight:600;
+    font-style:italic;
+    font-size:1.5rem;
+    margin-bottom:10px;
+  }
+  .p-body p{
+    color:var(--paper-dim);
+    max-width:58ch;
+    font-size:0.98rem;
+  }
+  @media (max-width:600px){
+    .p-step{ grid-template-columns:1fr; gap:8px; }
+  }
+
+  /* ---------- contact ---------- */
+  .contact .wrap{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:64px;
+    align-items:flex-start;
+  }
+  .contact-info h2{ margin-bottom:18px; }
+  .contact-info p{
+    color:var(--paper-dim);
+    font-size:1.02rem;
+    max-width:48ch;
+    margin-bottom:32px;
+  }
+  .contact-channels{
+    display:flex; flex-direction:column; gap:12px;
+    margin-bottom:36px;
+  }
+  .channel{
+    display:flex; align-items:center; gap:16px;
+    padding:18px 20px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    transition:border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+  .channel:hover{
+    border-color:var(--orange-dim);
+    background:rgba(255,90,31,0.05);
+    transform:translateX(4px);
+  }
+  .channel-icon{
+    width:42px; height:42px;
+    border-radius:10px;
+    background:var(--bg-card);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    color:var(--orange);
+  }
+  .channel-icon svg{ width:20px; height:20px; }
+  .channel-text .label{
+    font-family:var(--mono);
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--muted);
+    margin-bottom:3px;
+  }
+  .channel-text .value{
+    font-weight:600;
+    font-size:1rem;
+  }
+
+  .subject-note{
+    font-family:var(--mono);
+    font-size:0.85rem;
+    background:var(--bg-card);
+    border:1px dashed var(--sage-dim);
+    border-radius:12px;
+    padding:18px 20px;
+    color:var(--paper-dim);
+    line-height:1.6;
+    margin-bottom:12px;
+  }
+  .subject-note .tag{
+    color:var(--orange);
+    font-weight:500;
+  }
+
+  /* contact form card */
+  .form-card{
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:36px;
+  }
+  .form-card h3{
+    font-family:var(--display);
+    font-style:italic;
+    font-weight:600;
+    font-size:1.3rem;
+    margin-bottom:8px;
+  }
+  .form-card > p{
+    color:var(--muted);
+    font-size:0.88rem;
+    margin-bottom:26px;
+  }
+  .field{ margin-bottom:18px; }
+  .field label{
+    display:block;
+    font-family:var(--mono);
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:13px 15px;
+    color:var(--paper);
+    font-family:var(--body);
+    font-size:0.95rem;
+    transition:border-color 0.2s;
+  }
+  .field input:focus, .field textarea:focus{
+    outline:none;
+    border-color:var(--orange);
+  }
+  .field textarea{ resize:vertical; min-height:90px; }
+  .upload-zone{
+    border:1px dashed var(--line);
+    border-radius:10px;
+    padding:22px;
+    text-align:center;
+    color:var(--muted);
+    font-size:0.85rem;
+    cursor:pointer;
+    transition:border-color 0.2s, color 0.2s;
+  }
+  .upload-zone:hover{ border-color:var(--orange-dim); color:var(--paper-dim); }
+  .upload-zone svg{ width:22px; height:22px; margin:0 auto 8px; display:block; }
+  #file-name{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    color:var(--orange);
+    margin-top:8px;
+    display:none;
+  }
+  .form-submit{
+    width:100%;
+    background:var(--orange);
+    color:#1A0A02;
+    font-weight:600;
+    font-size:0.95rem;
+    padding:15px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    margin-top:6px;
+    transition:transform 0.2s, box-shadow 0.2s;
+  }
+  .form-submit:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 28px -8px rgba(255,90,31,0.5);
+  }
+  .form-foot{
+    font-family:var(--mono);
+    font-size:0.72rem;
+    color:var(--muted);
+    margin-top:14px;
+    text-align:center;
+  }
+
+  @media (max-width:900px){
+    .contact .wrap{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:40px 0;
+  }
+  footer .wrap{
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:16px;
+  }
+  footer .logo{ font-size:1.05rem; }
+  footer .foot-links{
+    display:flex; gap:24px;
+    font-size:0.85rem;
+    color:var(--muted);
+  }
+  footer .foot-links a:hover{ color:var(--paper); }
+  .foot-meta{
+    font-family:var(--mono);
+    font-size:0.72rem;
+    color:var(--muted);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header>
+  <nav>
+    <a href="#top" class="logo">Fishbone<span class="dot">·</span>Studio</a>
+    <div class="nav-links">
+      <a href="#process">Process</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <a href="#contact" class="nav-cta">Send a photo →</a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="eyebrow">2D → 3D → Painted by Hand</div>
+        <h1>Your sketch, <em>standing up</em> in the real world.</h1>
+        <p class="sub">Send a drawing or photo of what you want. I model it, 3D print it, and my friend hand-paints every piece — so what lived on paper ends up on your shelf.</p>
+        <div class="hero-actions">
+          <a href="#contact" class="btn btn-primary">Send your photo →</a>
+          <a href="#process" class="btn btn-ghost">See how it works</a>
+        </div>
+        <p class="price-note">You'll get a custom quote back before anything is made &nbsp;·&nbsp; <em>pieces start at $15</em></p>
+      </div>
+
+      <div>
+        <div class="slider-wrap" id="slider">
+          <img src="images/painted-fish.png" class="slider-after" alt="Hand-painted 3D printed fish sculpture, finished result" id="img-after" style="object-fit:contain; padding:8%; background:#F5F2EA;">
+          <div class="slider-before-wrap" style="position:absolute; inset:0; z-index:2; clip-path: inset(0 0 0 50%); background:#F5F2EA;" id="before-clip">
+            <img src="images/sketch-fish.png" alt="Original 2D fish sketch" style="width:100%; height:100%; object-fit:contain; padding:8%;">
+          </div>
+          <div class="slider-handle" id="handle"></div>
+          <div class="slider-grip" id="grip" style="left:50%;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>
+          </div>
+          <span class="slider-tag left">Sketch</span>
+          <span class="slider-tag right">Painted piece</span>
+        </div>
+        <div class="slider-hint">drag to compare — same fish, two forms</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="strip">
+    <div class="strip-track">
+      <span><em>send a photo</em> → scan & model → 3D print → hand-paint → ships to you <em>send a photo</em> → scan & model → 3D print → hand-paint → ships to you</span>
+      <span><em>send a photo</em> → scan & model → 3D print → hand-paint → ships to you <em>send a photo</em> → scan & model → 3D print → hand-paint → ships to you</span>
+    </div>
+  </div>
+
+  <!-- PROCESS -->
+  <section id="process" class="process">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">How It Works</div>
+        <h2>Five steps, <em>one shelf-worthy object</em>.</h2>
+      </div>
+
+      <div class="process-list">
+        <div class="p-step">
+          <div class="p-num">01</div>
+          <div class="p-body">
+            <h3>You send a photo</h3>
+            <p>A drawing, a doodle, a reference photo — whatever you want turned into an object. Email or WhatsApp it over, with a sense of size and any details that matter to you. I'll send you a custom quote before anything gets started — pieces start at $15.</p>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-num">02</div>
+          <div class="p-body">
+            <h3>It gets modeled in 3D</h3>
+            <p>Your 2D image is rebuilt as a digital 3D model, keeping the shapes and character of the original drawing.</p>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-num">03</div>
+          <div class="p-body">
+            <h3>We print it</h3>
+            <p>The model is 3D printed at the size that suits the piece — same proportions, now with real depth and weight.</p>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-num">04</div>
+          <div class="p-body">
+            <h3>My friend hand-paints it</h3>
+            <p>Every print is painted by hand, not airbrushed from a template — so the final color and finish are one-of-a-kind, matched to your original image.</p>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-num">05</div>
+          <div class="p-body">
+            <h3>It ships to you</h3>
+            <p>Packed carefully and sent your way — from your sketch to your shelf.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="contact">
+    <div class="wrap">
+      <div class="contact-info">
+        <div class="eyebrow">Get Started</div>
+        <h2>Send your photo, <em>start the build</em>.</h2>
+        <p>Reach out directly, or use the form. Either way, include a clear photo of what you want made and any notes on size or color. You'll get a quote back before anything is made — pieces start at $15.</p>
+
+        <div class="contact-channels">
+          <a class="channel" href="https://wa.me/12063805443" target="_blank" rel="noopener">
+            <div class="channel-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.13h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.22 8.22 0 0 1-1.26-4.39c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.55-3.7 8.24-8.24 8.24zm4.52-6.17c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.48-1.39-1.73-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43-.14-.01-.31-.01-.48-.01-.17 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.55.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.28z"/></svg>
+            </div>
+            <div class="channel-text">
+              <div class="label">WhatsApp</div>
+              <div class="value">(206) 380-5443</div>
+            </div>
+          </a>
+
+          <a class="channel" href="mailto:fishbonestudios3@gmail.com?subject=3d%20print%20art">
+            <div class="channel-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18v12H3z"/><path d="M3 6l9 7 9-7"/></svg>
+            </div>
+            <div class="channel-text">
+              <div class="label">Email</div>
+              <div class="value">fishbonestudios3@gmail.com</div>
+            </div>
+          </a>
+        </div>
+
+        <div class="subject-note">
+          Emailing instead of using the form? Put <span class="tag">3d print art</span> as the subject line so it doesn't get lost.
+        </div>
+        <div class="subject-note">
+          You'll receive a <span class="tag">custom quote</span> before any work begins. No commitment until you approve the price — minimum $15.
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>Quick request</h3>
+        <p>This opens your email client with everything filled in — image attaches there.</p>
+
+        <form id="contact-form">
+          <div class="field">
+            <label for="name">Your name</label>
+            <input type="text" id="name" name="name" placeholder="Jamie Rivera" required>
+          </div>
+          <div class="field">
+            <label for="email">Your email</label>
+            <input type="email" id="email" name="email" placeholder="you@email.com" required>
+          </div>
+          <div class="field">
+            <label for="details">What do you want made? can not exceed 256mm^3</label>
+            <textarea id="details" name="details" placeholder="A 4-inch version of my dog's profile sketch, painted in warm browns..."></textarea>
+          </div>
+          <div class="field">
+            <label>Reference photo</label>
+            <div class="upload-zone" id="upload-zone">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+              Click to attach, or just attach it in the email that opens
+              <div id="file-name"></div>
+            </div>
+            <input type="file" id="file-input" accept="image/*" style="display:none;">
+          </div>
+          <button type="submit" class="form-submit">Open email to send →</button>
+          <div class="form-foot">You'll get a quote back before anything is made · minimum $15</div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="#top" class="logo">Fishbone<span class="dot">·</span>Studio</a>
+    <div class="foot-links">
+      <a href="https://wa.me/12063805443" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="mailto:fishbonestudios3@gmail.com?subject=3d%20print%20art">Email</a>
+      <a href="#process">Process</a>
+    </div>
+    <div class="foot-meta">2D → 3D, painted by hand</div>
+  </div>
+</footer>
+
+<script>
+  // Before/after slider
+  const sliderWrap = document.getElementById('slider');
+  const beforeClip = document.getElementById('before-clip');
+  const handle = document.getElementById('handle');
+  const grip = document.getElementById('grip');
+  let dragging = false;
+
+  function setPosition(clientX){
+    const rect = sliderWrap.getBoundingClientRect();
+    let pct = ((clientX - rect.left) / rect.width) * 100;
+    pct = Math.max(0, Math.min(100, pct));
+    beforeClip.style.clipPath = `inset(0 0 0 ${pct}%)`;
+    handle.style.left = pct + '%';
+    grip.style.left = pct + '%';
+  }
+
+  sliderWrap.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    setPosition(e.clientX);
+    sliderWrap.setPointerCapture(e.pointerId);
+  });
+  sliderWrap.addEventListener('pointermove', (e) => {
+    if(dragging) setPosition(e.clientX);
+  });
+  sliderWrap.addEventListener('pointerup', () => dragging = false);
+  sliderWrap.addEventListener('pointerleave', () => dragging = false);
+
+  // gentle auto demo on load (reduced motion respected)
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let t = 0;
+    const demo = setInterval(() => {
+      t += 0.02;
+      const pct = 50 + Math.sin(t) * 14;
+      if (!dragging) {
+        beforeClip.style.clipPath = `inset(0 0 0 ${pct}%)`;
+        handle.style.left = pct + '%';
+        grip.style.left = pct + '%';
+      }
+      if (t > 3.4) clearInterval(demo);
+    }, 30);
+  }
+
+  // Upload zone -> file input
+  const uploadZone = document.getElementById('upload-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileName = document.getElementById('file-name');
+
+  uploadZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    if(fileInput.files.length){
+      fileName.textContent = '✓ ' + fileInput.files[0].name + ' — attach this in the email that opens';
+      fileName.style.display = 'block';
+    }
+  });
+
+  // Contact form -> mailto
+  document.getElementById('contact-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value || 'there';
+    const email = document.getElementById('email').value;
+    const details = document.getElementById('details').value;
+
+    const bodyLines = [
+      `Hi! I'd like to turn an image into a 3D printed, painted piece.`,
+      ``,
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Details: ${details || '(see attached image)'}`,
+      ``,
+      `(Remember to attach the reference photo before sending!)`
+    ];
+    const body = encodeURIComponent(bodyLines.join('\n'));
+    const subject = encodeURIComponent('3d print art');
+
+    window.location.href = `mailto:fishbonestudios3@gmail.com?subject=${subject}&body=${body}`;
+  });
+</script>
+
+</body>
+</html>
